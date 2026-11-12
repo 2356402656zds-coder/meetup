@@ -1,38 +1,26 @@
-# Poker Clock Pro
+# Poker Clock Pro · Android TV
 
-Poker Clock Pro 是一套门店局域网德州扑克赛事管理系统：Mac 运行本地服务端和电脑后台；每台 Android TV 连接到 Mac 的赛事状态；每张牌桌独立保存比赛和统计数据。
+独立离线运行的德州扑克升盲计时器。电视用遥控器控制，盲注等级和比赛名称保存在电视本机。不需要 Mac 本地服务器、电脑后台、手机控制、互联网或客户资料。
 
-## 当前可运行部分
+## 构建 APK
 
-- Node 26 + SQLite 3.51 的本地服务端，不依赖公网服务器。
-- 四张示例牌桌 A01–A04，独立比赛状态和独立权威倒计时。
-- SQLite 数据文件：`server/data/poker-clock-pro.sqlite`。
-- 电脑后台：`http://Mac局域网IP:8787/`。
-- 创建比赛、选择盲注模板、开始/暂停/恢复、前后等级、结束比赛。
-- 报名人数、剩余人数、买入、Re-entry、Rebuy、Add-on 的独立统计字段。
-- 自动升盲、Break、比赛结束、操作日志和重启后的状态恢复。
-- `GET /api/tv/state?tableId=A01` 给电视端读取单桌状态；`POST /api/tournaments/:id/action` 执行真实操作；`/api/events` 提供局域网 SSE，`/ws?tableId=A01` 提供无第三方依赖的 WebSocket 实时广播。
-- Android TV 工程位于 `android-tv/`，当前环境没有 Android SDK/Gradle/Java Runtime，不能在本机生成 APK；其中 `.github/workflows/apk.yml` 可在 GitHub Actions 上构建 Debug APK。
+GitHub Actions 配置在 `.github/workflows/apk.yml`。提交后会自动构建，也可从 GitHub 仓库 **Actions（操作）→ 构建电视 APK → Run workflow（运行工作流）** 手动启动。构建成功后下载 **PokerClockPro-APK** artifact 并解压，得到 `app-debug.apk`。
 
-## 启动 Mac 服务端
+如果沿用现有 GitHub 仓库，请把更新后的项目文件按原目录结构上传并提交。确保这些路径已更新：
 
-要求 Node.js 22 或更高版本。执行：
+- `.github/workflows/apk.yml`
+- `android-tv/app/src/main/assets/tv.html`
+- `android-tv/app/src/main/AndroidManifest.xml`
+- `android-tv/app/src/main/java/club/poker/tv/MainActivity.java`
 
-```sh
-cd PokerClockPro
-./scripts/start.sh
-```
+## 安装和使用
 
-然后在电脑打开 `http://127.0.0.1:8787/`。电视和电脑连接同一路由器，电视使用 Mac 的局域网 IP，例如 `http://192.168.1.23:8787`。
+将 APK 拷到 U 盘，在电视文件管理器打开 APK 安装。如被拦截，在 **Settings（设置）→ Security / Install unknown apps（安全 / 安装未知应用）** 中允许文件管理器安装。
 
-## 恢复策略
+打开应用即可使用。方向键移动焦点，OK 确认。支持开始/暂停/继续、前后等级、重置本级、编辑盲注 SB/BB/Ante 和时长、添加/删除等级、比赛命名、恢复默认规则。规则保存在电视本机。
 
-服务端用 `ends_at` 和 `remaining_ms` 作为权威时间来源。暂停会保存剩余毫秒数；服务端重启后，运行中的比赛按保存的结束时间继续并自动补齐到期等级，不会因为电视断线而重置整级。电视重新连接只获取服务器快照，不在本地自行推进比赛。
+默认盲注结构为 100/200、200/400、300/600/Ante 100、500/1000/Ante 100，各 20 分钟，随后休息 10 分钟。到时自动升至下一级；最后一级结束后停止。
 
-## Android TV 构建限制
+## 验收限制
 
-本机器检查到 Node 和 SQLite 可用，但没有 Android SDK、Gradle 和 Java Runtime，因此没有生成可安装 APK，也没有进行真机兼容性验收。GitHub Actions 工作流会安装 JDK 17、Android SDK 和 Gradle 8.9，然后产出 `app-debug.apk`。APK 安装包必须在真实 Android TV 上验收遥控器焦点、横屏、常亮和开机恢复。
-
-## 数据边界
-
-系统只记录单场赛事统计，不创建玩家个人档案、会员 CRM、支付和手机遥控功能。生产部署建议固定 Mac 局域网 IP，不做端口映射，不把 HTTP 服务暴露到公网；正式营业前应增加后台登录、设备绑定码轮换和 HTTPS。
+开发环境没有 Android SDK、Gradle 和 Java Runtime，尚未本机生成 APK 或在目标电视验收。请在电视上检查 D-pad 焦点、OK 键、横屏、常亮和重启恢复。`server/` 目录是先前扩展赛事后台留下的独立实验代码，与电视单机版无关，可以忽略。

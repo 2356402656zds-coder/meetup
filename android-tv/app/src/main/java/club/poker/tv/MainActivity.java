@@ -25,7 +25,6 @@ public final class MainActivity extends Activity {
         settings.setDomStorageEnabled(true);
         settings.setAllowFileAccess(true);
         settings.setAllowContentAccess(true);
-        settings.setAllowUniversalAccessFromFileURLs(true);
         web.setWebViewClient(new WebViewClient());
         setContentView(web);
         web.loadUrl("file:///android_asset/tv.html");
