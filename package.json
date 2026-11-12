@@ -1,0 +1,18 @@
+{
+  "name": "poker-clock-pro",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server/src/server.mjs",
+    "dev": "node --watch server/src/server.mjs",
+    "db:migrate": "node server/src/server.mjs --migrate-only",
+    "test": "node --test server/src/*.test.mjs"
+  },
+  "engines": { "node": ">=22" },
+  "optionalDependencies": {
+    "ws": "^8.18.0",
+    "prisma": "^6.19.0",
+    "@prisma/client": "^6.19.0"
+  }
+}

@@ -1,0 +1,104 @@
+generator client { provider = "prisma-client-js" }
+datasource db { provider = "sqlite" url = env("DATABASE_URL") }
+
+model User {
+  id        String   @id
+  username  String   @unique
+  role      String   @default("ADMIN")
+  createdAt DateTime @default(now())
+}
+model PokerTable {
+  id          String      @id
+  name        String
+  enabled     Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  tournaments Tournament[]
+  devices     TvDevice[]
+}
+model TvDevice {
+  id          String    @id
+  name        String
+  bindingCode String    @unique
+  tableId     String?
+  table       PokerTable? @relation(fields: [tableId], references: [id])
+  lastSeenAt  DateTime?
+  createdAt   DateTime  @default(now())
+}
+model BlindTemplate {
+  id          String @id
+  name        String
+  createdAt   DateTime @default(now())
+  levels      BlindTemplateLevel[]
+  tournaments Tournament[]
+}
+model BlindTemplateLevel {
+  id             String @id
+  templateId     String
+  sequence       Int
+  label          String
+  sb             Int
+  bb             Int
+  ante           Int @default(0)
+  anteType       String @default("NONE")
+  durationSeconds Int
+  isBreak        Boolean @default(false)
+  template       BlindTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+}
+model Tournament {
+  id              String @id
+  name            String
+  tableId         String
+  templateId      String
+  status          String @default("DRAFT")
+  createdAt       DateTime @default(now())
+  startedAt       DateTime?
+  completedAt     DateTime?
+  table           PokerTable @relation(fields: [tableId], references: [id])
+  template        BlindTemplate @relation(fields: [templateId], references: [id])
+  levels          TournamentLevel[]
+  state           TournamentState?
+  stats           TournamentStats?
+  logs            OperationLog[]
+}
+model TournamentLevel {
+  id              String @id
+  tournamentId    String
+  sequence        Int
+  label           String
+  sb              Int
+  bb              Int
+  ante            Int @default(0)
+  anteType        String @default("NONE")
+  durationSeconds Int
+  isBreak         Boolean @default(false)
+  tournament      Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+}
+model TournamentState {
+  tournamentId String @id
+  currentLevel Int @default(0)
+  status       String @default("READY")
+  endsAt       BigInt?
+  remainingMs  BigInt?
+  version      Int @default(0)
+  updatedAt    DateTime @updatedAt
+  tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+}
+model TournamentStats {
+  tournamentId       String @id
+  initialPlayers     Int @default(0)
+  remainingPlayers   Int @default(0)
+  eliminatedPlayers  Int @default(0)
+  initialEntries     Int @default(0)
+  reentries          Int @default(0)
+  rebuys             Int @default(0)
+  addons             Int @default(0)
+  tournament         Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+}
+model OperationLog {
+  id           String @id
+  tournamentId String
+  action       String
+  payloadJson  String
+  createdAt    DateTime @default(now())
+  tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+}
